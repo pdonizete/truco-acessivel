@@ -110,6 +110,76 @@ class TerminalInterfaceTestCase(unittest.TestCase):
         self.assertIsNone(game.pending_raise)
         self.assertEqual(len(game.hands[BOT]), 2)
 
+    def test_player_can_check_current_points_without_playing(self) -> None:
+        store = DummyStore()
+        events: list[str] = []
+        interface = TerminalInterface(
+            store=store,
+            input_fn=lambda prompt: "P",
+            output_fn=events.append,
+        )
+        game = TrucoGame(settings=MatchSettings(difficulty=Difficulty.INTERMEDIARIO))
+        game.start_new_match()
+        game.start_new_hand()
+        game.player_score = 4
+        game.bot_score = 2
+        game.hand_value = 3
+        game.current_player = PLAYER
+
+        interface._handle_player_turn(game)
+
+        transcript = "\n".join(events)
+        self.assertIn("=== Pontos Atuais ===", transcript)
+        self.assertIn("Placar atual: voce 4 x 2 computador.", transcript)
+        self.assertEqual(game.current_player, PLAYER)
+        self.assertEqual(len(game.hands[PLAYER]), 3)
+
+    def test_player_can_check_points_while_answering_raise(self) -> None:
+        store = DummyStore()
+        events: list[str] = []
+        interface = TerminalInterface(
+            store=store,
+            input_fn=lambda prompt: "p",
+            output_fn=events.append,
+        )
+        game = TrucoGame(settings=MatchSettings(difficulty=Difficulty.INTERMEDIARIO))
+        game.start_new_match()
+        game.start_new_hand()
+        game.player_score = 6
+        game.bot_score = 5
+        game.current_player = BOT
+        game.request_raise(BOT)
+
+        interface._handle_player_raise_response(game)
+
+        transcript = "\n".join(events)
+        self.assertIn("[P] Ver pontos atuais", transcript)
+        self.assertIn("Placar atual: voce 6 x 5 computador.", transcript)
+        self.assertIsNotNone(game.pending_raise)
+        self.assertEqual(game.hand_value, 1)
+
+    def test_hand_over_message_includes_current_points(self) -> None:
+        store = DummyStore()
+        events: list[str] = []
+
+        def input_fn(prompt: str) -> str:
+            events.append(prompt)
+            raise EOFError
+
+        interface = TerminalInterface(store=store, input_fn=input_fn, output_fn=events.append)
+        game = TrucoGame(settings=MatchSettings(difficulty=Difficulty.INTERMEDIARIO))
+        game.start_new_match()
+        game.start_new_hand()
+        game.player_score = 4
+        game.bot_score = 2
+        game.surrender_hand(BOT)
+
+        interface.run_match(game)
+
+        transcript = "\n".join(events)
+        self.assertIn("Mao encerrada.", transcript)
+        self.assertIn("Placar atual: voce 5 x 2 computador.", transcript)
+
 
 if __name__ == "__main__":
     unittest.main()

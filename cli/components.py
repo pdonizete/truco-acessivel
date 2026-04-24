@@ -22,6 +22,13 @@ def format_scoreboard(game: "TrucoGame") -> str:
     )
 
 
+def format_points_status(game: "TrucoGame") -> str:
+    return (
+        f"Placar atual: voce {game.player_score} x {game.bot_score} computador.\n"
+        f"Esta mao vale {game.hand_value} ponto(s)."
+    )
+
+
 def format_table(game: "TrucoGame") -> str:
     if not game.current_trick_cards:
         return "Mesa vazia nesta rodada."

@@ -50,6 +50,7 @@ Durante a partida, o cliente mostra o placar, a vira, a manilha, as cartas na me
 
 - Digite o numero da carta para jogar.
 - Digite `T` para pedir truco ou aumentar o valor da mao quando a acao estiver disponivel.
+- Digite `P` para consultar os pontos atuais sem passar a vez.
 - Digite `F` para correr da mao.
 - Ao responder um pedido do computador, escolha aceitar, aumentar ou correr pelas opcoes numeradas exibidas no terminal.
 

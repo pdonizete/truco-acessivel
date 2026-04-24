@@ -10,6 +10,7 @@ from cli.components import (
     format_history,
     format_match_result,
     format_options,
+    format_points_status,
     format_scoreboard,
     format_stats,
     format_table,
@@ -91,7 +92,8 @@ class TerminalInterface:
                     if game.hand_over_summary is not None:
                         self._announce(
                             f"Mao encerrada. {game.hand_over_summary.reason} "
-                            f"Pontos recebidos: {game.hand_over_summary.points_awarded}."
+                            f"Pontos recebidos: {game.hand_over_summary.points_awarded}.\n"
+                            f"{format_points_status(game)}"
                         )
                     self._beep_if_enabled(game.settings.beep_enabled)
                     self._prompt("Pressione Enter para distribuir a proxima mao")
@@ -156,6 +158,7 @@ class TerminalInterface:
         if game.can_raise(PLAYER):
             next_value = next_raise_value(game.hand_value)
             options.append(("T", f"Pedir valor {next_value}"))
+        options.append(("P", "Ver pontos atuais"))
         options.append(("F", "Correr da mao"))
         self._announce(format_options(options))
         choice = self._prompt("Escolha sua acao").upper()
@@ -163,6 +166,9 @@ class TerminalInterface:
         try:
             if choice == "T":
                 game.request_raise(PLAYER)
+                return
+            if choice == "P":
+                self._show_points_status(game)
                 return
             if choice == "F":
                 game.surrender_hand(PLAYER)
@@ -187,6 +193,7 @@ class TerminalInterface:
             options.append(("3", "Correr"))
         else:
             options.append(("2", "Correr"))
+        options.append(("P", "Ver pontos atuais"))
         self._announce(
             f"O computador pediu valor {pending.requested_value}. "
             "Voce precisa responder antes de jogar."
@@ -197,6 +204,8 @@ class TerminalInterface:
         try:
             if choice == "1":
                 game.accept_raise(PLAYER)
+            elif choice.upper() == "P":
+                self._show_points_status(game)
             elif choice == "2" and next_value is not None:
                 game.escalate_raise(PLAYER)
             elif (choice == "2" and next_value is None) or (choice == "3" and next_value is not None):
@@ -237,6 +246,10 @@ class TerminalInterface:
             and not game.trick_history
             and not game.current_trick_cards
         )
+
+    def _show_points_status(self, game: TrucoGame) -> None:
+        self._announce(separator("Pontos Atuais"))
+        self._announce(format_points_status(game))
 
     def _new_game(self, tutorial_mode: bool) -> TrucoGame:
         preferences = self.store.load()["preferencias"]
