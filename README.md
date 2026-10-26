@@ -132,3 +132,5 @@ Antes de abrir um pull request, verifique:
 ## Licenca
 
 Este projeto ainda nao define uma licenca publica. Antes de reutilizar, distribuir ou publicar alteracoes, abra uma issue para alinhamento com os mantenedores.
+
+_Teste do webhook do Hermes em outro repositorio._
